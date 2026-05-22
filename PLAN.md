@@ -40,19 +40,17 @@ that follows. Land them before Phase 1 starts.
   schema, precedence rules, and bootstrap behavior. v1 does not specify
   `naming.area_prefix`; it is documented as a reactive v2 extension hook
   per ADR-0005's "Trigger to revisit."
-- **Resolve the OF-plugin URL scheme open question** flagged in
-  `lib/backends/omnifocus.md`. Either:
-  - **Design it** — document the URL surface, file as ADR-0006, and
-    keep the three-tier degradation order intact, OR
-  - **Defer to v2** — file a one-paragraph ADR saying "v1 degradation
-    goes MCP → TaskPaper paste; URL-scheme path deferred until the OF
-    plugin repo is finalized," and remove the URL row from the write-
-    operations table in `lib/backends/omnifocus.md`.
+- ~~**Resolve the OF-plugin URL scheme open question**~~ — **done**;
+  see [ADR-0006](docs/adr/0006-defer-of-url-scheme-to-v2.md). v1
+  degradation collapses to two tiers (MCP → TaskPaper paste); the
+  URL-scheme path is deferred to v2 until the OF plugin repo is stood
+  up. `lib/backends/omnifocus.md` updated to match.
 
 **Exit criterion:** `references/` populates successfully via the sync
 workflow against the new sibling repo; `lib/config.md` exists and is
-referenced from at least one SKILL.md; the OF URL-scheme question is no
-longer "open" in `lib/backends/omnifocus.md`.
+referenced from at least one SKILL.md; the OF URL-scheme question is
+resolved in [ADR-0006](docs/adr/0006-defer-of-url-scheme-to-v2.md) and
+`lib/backends/omnifocus.md` no longer carries it as open.
 
 ## Phase 1 — `metawork-articulate` skill body
 
@@ -147,8 +145,8 @@ the adapter MCP, so this phase matters strategically.
 - Tag-hierarchy verification + creation per `lib/backends/omnifocus.md`.
 - `Overview (X)` convention per ADR-0005, including the altitude →
   container mapping table.
-- Degradation order: MCP → URL scheme (if Phase 0 designed it) →
-  TaskPaper paste.
+- Degradation order: MCP → TaskPaper paste, per
+  [ADR-0006](docs/adr/0006-defer-of-url-scheme-to-v2.md).
 - Respect the performance discipline in `lib/backends/omnifocus.md`:
   no bulk-list, AppleScript fallback wrapped in 60s timeout, file an
   issue against the OF MCP if a needed query times out.
@@ -289,8 +287,6 @@ discipline.
 
 Named explicitly so future-Kraig can see what's unresolved.
 
-- **OF plugin URL scheme** — design now (ADR-0006) or defer to v2?
-  Forces a decision in Phase 0.
 - **`omnifocus-taskpaper-templates` repo** — `lib/backends/omnifocus.md`
   treats this as canonical. Is it assumed already standing, or does
   Phase 0 also confirm/stand it up?
