@@ -1,0 +1,135 @@
+# Meta Work Group schema (v1)
+#
+# This is the canonical schema for a Meta Work Group across all backends.
+# Backends serialize it as appropriate:
+#   - markdown-dir: YAML frontmatter at the top of a .md file
+#   - OmniFocus: a project (or `Overview (X)` project for area-level) with
+#     scope axes mapped to OF tags per lib/backends/omnifocus.md
+#
+# See:
+#   - CONTEXT.md (glossary for each term)
+#   - docs/adr/0004-multi-axial-scope-model.md (axis rationale)
+#   - docs/adr/0005-overview-project-naming-convention.md (OF area convention)
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+type: object
+required: [subject, life_domain, horizons_of_focus, system_strata, vertical_development_stage]
+
+properties:
+  # ─── identity ─────────────────────────────────────────────────────────
+  subject:
+    type: string
+    description: "Free-text name of what this Meta Work Group is about."
+  parent:
+    type: ["string", "null"]
+    description: |
+      Reference to a parent group, for panarchy nesting. Format depends on
+      backend: relative file path (markdown), OF task/project id (OmniFocus).
+    default: null
+  life_domain:
+    type: string
+    description: |
+      Organizational placement. Filesystem path for markdown backend;
+      OF folder path for OmniFocus backend. Examples: 'Vocational/Praxis',
+      'Identity/Racial', 'Wellness/Sleep'.
+
+  # ─── scope (first-class axes) ─────────────────────────────────────────
+  horizons_of_focus:
+    type: string
+    enum:
+      - 50000ft-purpose-principles
+      - 40000ft-vision
+      - 30000ft-goals-objectives
+      - 20000ft-areas-focus-responsibility
+      - 10000ft-projects
+      - runway
+    description: "Granularity / altitude axis (GTD David Allen)."
+  system_strata:
+    type: string
+    enum:
+      - 200-500yr
+      - 100-200yr
+      - 50-100yr
+      - 20-50yr
+      - 10-20yr
+      - 5-10yr
+      - 2-5yr
+      - 1-2yr
+      - 3mo-1yr
+      - 1day-3mo
+    description: "Temporal horizon axis (Kraig's custom synthesis)."
+  vertical_development_stage:
+    type: string
+    enum:
+      - self-centric
+      - group-centric
+      - skill-centric
+      - self-determining
+      - self-questioning
+      - self-actualizing
+      - construct-aware
+      - unitive
+    description: "Developmental altitude axis (Kraig's 8-stage synthesis)."
+
+  # ─── optional classifiers ─────────────────────────────────────────────
+  cynefin_domain:
+    type: ["string", "null"]
+    enum: [null, simple, complicated, complex, chaotic, disordered]
+    description: "Cynefin complexity classifier (Snowden). Optional."
+  neurological_level:
+    type: ["string", "null"]
+    enum: [null, environment, behavior, capability, beliefs-values, identity, spiritual]
+    description: "Dilts Neurological Level classifier (NLP). Optional."
+
+  # ─── body (TaskPaper template structure) ─────────────────────────────
+  current_reality:
+    type: array
+    items: { type: string }
+    description: "Statements describing current experience, beliefs, values, resources, environment."
+  gtd_natural_planning:
+    type: object
+    properties:
+      purpose_and_principles: { type: array, items: { type: string } }
+      mission_and_vision:     { type: array, items: { type: string } }
+      scenarios:              { type: array, items: { type: string } }
+      goals_and_outcomes:     { type: array, items: { type: string } }
+      polarities:             { type: array, items: { type: string } }
+      systems:                { type: array, items: { type: string } }
+      measures:
+        type: object
+        properties:
+          lagging:  { type: array, items: { type: string } }
+          leading:  { type: array, items: { type: string } }
+      brainstorm: { type: array, items: { type: string } }
+      organize:
+        type: object
+        properties:
+          components_and_subprojects:    { type: array, items: { type: string } }
+          dependencies_and_resources:    { type: array, items: { type: string } }
+          environment_conditions:        { type: array, items: { type: string } }
+          review_artifacts:              { type: array, items: { type: string } }
+          habits_to_change:              { type: array, items: { type: string } }
+          habits_to_build:               { type: array, items: { type: string } }
+          backend_setup_action:          { type: ["string", "null"] }
+          fitness_functions:             { type: array, items: { type: string } }
+      next_actions: { type: array, items: { type: string } }
+  perspective_checks:
+    type: array
+    description: |
+      Daily auto-done check kinds, from the Living Forward Life Plan.
+    items:
+      type: string
+      enum:
+        - reality
+        - purpose_and_principles
+        - envisioned_futures
+        - goals_and_objectives
+    default: [reality, purpose_and_principles, envisioned_futures, goals_and_objectives]
+  monitor:
+    type: object
+    properties:
+      performance: { type: array, items: { type: string } }
+      health:      { type: array, items: { type: string } }
+  habits:
+    type: array
+    items: { type: string }

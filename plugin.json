@@ -1,0 +1,54 @@
+{
+  "name": "metawork",
+  "displayName": "Meta Work",
+  "version": "0.1.0-alpha",
+  "description": "Teach, run, set up, and coach the Meta Work methodology — a structured practice for intentional planning, perspective-maintenance, and monitoring across project, area, domain, and identity scopes.",
+  "author": {
+    "name": "Kraig Parkinson",
+    "email": "kraigparkinson@integralproductivity.com",
+    "url": "https://github.com/Integral-Productivity"
+  },
+  "homepage": "https://github.com/Integral-Productivity/metawork-claude-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Integral-Productivity/metawork-claude-plugin"
+  },
+  "license": "MIT",
+  "keywords": [
+    "meta-work",
+    "methodology",
+    "gtd",
+    "polarity-management",
+    "fitness-functions",
+    "vertical-development",
+    "panarchy",
+    "addressing-model",
+    "living-forward",
+    "omnifocus",
+    "personal-productivity",
+    "integral-productivity"
+  ],
+  "skills": [
+    "skills/metawork-scholar",
+    "skills/metawork-articulate",
+    "skills/metawork-set-up",
+    "skills/metawork-morning",
+    "skills/metawork-retro",
+    "skills/metawork-diagnose"
+  ],
+  "commands": [
+    "commands/metawork-set-up.md",
+    "commands/metawork-morning.md",
+    "commands/metawork-retro.md",
+    "commands/metawork-diagnose.md",
+    "commands/metawork-articulate.md"
+  ],
+  "agents": [
+    "agents/metawork-scholar.md",
+    "agents/metawork-orchestrator.md"
+  ],
+  "status": {
+    "stability": "alpha",
+    "notes": "v0.1 scaffold: artifact stubs declared; skill bodies, command bodies, and subagent bodies to be filled in per the build order in PLAN.md."
+  }
+}
