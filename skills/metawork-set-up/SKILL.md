@@ -39,7 +39,8 @@ health monitoring setup, habits — persisted to the user's backend.
 ## Method
 
 1. **Bootstrap config** if `~/.metawork/config.json` doesn't exist — prompt
-   for backend + location, write the file, confirm.
+   for backend + location, write the file, confirm. See `lib/config.md`
+   for the schema and precedence rules.
 2. **Pick scope** — walk three first-class axes one at a time, with definitions
    and reasonable defaults. Optional classifiers offered last.
 3. **Name subject + life domain** — free-text subject, filesystem-path or

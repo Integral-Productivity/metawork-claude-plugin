@@ -36,11 +36,10 @@ that follows. Land them before Phase 1 starts.
   the repo's CI to fire `repository_dispatch` of type
   `metawork-methodology-updated` on push to `main` (referenced in our
   workflow).
-- **Write `lib/config.md`** — spec for `~/.metawork/config.json`:
-  `backend` (`omnifocus` | `markdown-dir`), `state_dir` (path, required
-  when `backend == "markdown-dir"`), optional naming overrides (e.g.,
-  the `naming.area_prefix` knob flagged in ADR-0005's "Trigger to
-  revisit"). If anything in this spec is non-obvious, file an ADR.
+- ~~**Write `lib/config.md`**~~ — **done**; see `lib/config.md` for the
+  schema, precedence rules, and bootstrap behavior. v1 does not specify
+  `naming.area_prefix`; it is documented as a reactive v2 extension hook
+  per ADR-0005's "Trigger to revisit."
 - **Resolve the OF-plugin URL scheme open question** flagged in
   `lib/backends/omnifocus.md`. Either:
   - **Design it** — document the URL surface, file as ADR-0006, and
@@ -292,10 +291,6 @@ Named explicitly so future-Kraig can see what's unresolved.
 
 - **OF plugin URL scheme** — design now (ADR-0006) or defer to v2?
   Forces a decision in Phase 0.
-- **`~/.metawork/config.json` exact shape** — Phase 0 produces
-  `lib/config.md`; does the file include `naming.area_prefix` from the
-  start (per ADR-0005's "Trigger to revisit") or only when a v1 adopter
-  asks?
 - **`omnifocus-taskpaper-templates` repo** — `lib/backends/omnifocus.md`
   treats this as canonical. Is it assumed already standing, or does
   Phase 0 also confirm/stand it up?
