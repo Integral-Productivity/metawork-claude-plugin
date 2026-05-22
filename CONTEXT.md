@@ -84,8 +84,9 @@ Where Meta Work Group state lives for a user. v1 supports two backends:
 
 - **OmniFocus** (preferred for OF users): state lives as OF projects, action
   groups, and tags. Skills compose on top of the existing `mcp__omnifocus__*`
-  tools, with degrading fallback to a Kraig-maintained OF plugin via URL scheme,
-  and final fallback to TaskPaper render-and-paste.
+  tools, with fallback to TaskPaper render-and-paste. URL-scheme delegation
+  to a Kraig-maintained OF plugin was considered as a middle tier and is
+  deferred to v2; see ADR-0006.
 - **Markdown directory**: state lives as `.md` files on the filesystem, one per
   Meta Work Group, with YAML frontmatter conforming to
   `lib/schema/metawork-group.schema.yaml`.

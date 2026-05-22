@@ -9,16 +9,14 @@ rather than re-deriving the conventions.
 Every write operation should try, in order:
 
 1. **`mcp__omnifocus__*` MCP tools** — if the MCP is connected and responsive.
-2. **The user's OmniFocus plugin** via URL scheme — if the plugin is
-   installed. (Exact URL scheme and action surface to be documented when the
-   plugin's repo is finalized; track via the open question in
-   `PLAN.md`.)
-3. **TaskPaper render-and-paste** — render the Meta Work Group as TaskPaper,
+2. **TaskPaper render-and-paste** — render the Meta Work Group as TaskPaper,
    write to the clipboard or a temp file, and instruct the user to paste
    into OmniFocus (`File > Import` or `⌘V` into a project).
 
 Skills detect availability in that order; degradation is silent unless the
-user asks why a path was chosen.
+user asks why a path was chosen. URL-scheme delegation to a Kraig-maintained
+OmniFocus plugin was considered as a middle tier and deferred to v2; see
+[ADR-0006](../../docs/adr/0006-defer-of-url-scheme-to-v2.md).
 
 ## Performance caveat
 
@@ -102,9 +100,9 @@ Common patterns and their MCP/AppleScript implementations:
 
 Common patterns:
 
-| Operation | MCP first | OF plugin via URL | TaskPaper paste |
-|---|---|---|---|
-| Create an Overview project | `mcp__omnifocus__create_project` with name `"Overview (X)"` and `folder` set | URL scheme TBD | render TaskPaper, prompt user to paste |
-| Create the Meta Work action group inside a project | iterate `mcp__omnifocus__create_task` per template node, setting `parent` | URL scheme TBD | render TaskPaper, prompt user to paste |
-| Tag a project/task with scope axes | `mcp__omnifocus__add_tag_*` (or set tags on creation) | URL scheme TBD | render TaskPaper with `@tags(...)` |
-| Mark today's perspective check complete | `mcp__omnifocus__complete_task` on the auto-done daily-repeat task | URL scheme TBD | (n/a — markdown alternative used) |
+| Operation | MCP first | TaskPaper paste |
+|---|---|---|
+| Create an Overview project | `mcp__omnifocus__create_project` with name `"Overview (X)"` and `folder` set | render TaskPaper, prompt user to paste |
+| Create the Meta Work action group inside a project | iterate `mcp__omnifocus__create_task` per template node, setting `parent` | render TaskPaper, prompt user to paste |
+| Tag a project/task with scope axes | `mcp__omnifocus__add_tag_*` (or set tags on creation) | render TaskPaper with `@tags(...)` |
+| Mark today's perspective check complete | `mcp__omnifocus__complete_task` on the auto-done daily-repeat task | (n/a — markdown alternative used) |
