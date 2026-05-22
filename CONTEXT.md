@@ -92,6 +92,22 @@ Where Meta Work Group state lives for a user. v1 supports two backends:
 
 Future backends (v2+): Obsidian vault, Things, Todoist, Notion.
 
+### Configuration
+
+The per-user file at `~/.metawork/config.json` that selects the backend
+and (for the markdown backend) the state directory. Skills resolve
+configuration via a precedence chain: CLI flag (`--state-dir`) →
+per-state-dir `<state-dir>/config.json` → global default. Schema and
+precedence rules live in `lib/config.md`.
+
+### State directory
+
+The filesystem root for the markdown backend's state, referenced in
+prose as `<state-dir>` and as the `state_dir` field in
+`~/.metawork/config.json`. Examples: `~/MetaWork`, an Obsidian vault
+root. Irrelevant to the OmniFocus backend. See `lib/backends/markdown-dir.md`
+for the directory layout and `lib/config.md` for how it is configured.
+
 ## Convention notes (not glossary terms)
 
 - **`metawork-*`** is the artifact-naming convention inside the plugin (no
