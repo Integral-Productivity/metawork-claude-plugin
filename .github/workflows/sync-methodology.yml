@@ -68,19 +68,54 @@ jobs:
       - name: Clean up source clone
         run: rm -rf .methodology-src
 
-      - name: Open PR if changed
-        uses: peter-evans/create-pull-request@v6
-        with:
-          branch: chore/sync-methodology
-          commit-message: |
-            chore(references): sync methodology @ ${{ steps.upstream.outputs.short_sha }}
-          title: "chore(references): sync methodology @ ${{ steps.upstream.outputs.short_sha }}"
-          body: |
-            Automated sync of `Integral-Productivity/metawork-methodology@main` into `references/`.
+      # We open the PR with a shell step rather than peter-evans/create-pull-request
+      # because the Integral-Productivity org's GitHub Actions allowlist restricts
+      # third-party actions to a curated set (see the org's Actions settings).
+      # peter-evans/create-pull-request isn't on that list, so using it triggered
+      # `startup_failure` on the receiver before any step ran.
+      #
+      # If we later need PRs opened here to fire downstream CI (the built-in
+      # GITHUB_TOKEN doesn't trigger workflows on PRs it creates), mint a token
+      # via actions/create-github-app-token@v1 — that one IS on the allowlist —
+      # and pass it as GH_TOKEN below.
+      - name: Open or update PR if references/ changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHORT_SHA: ${{ steps.upstream.outputs.short_sha }}
+          FULL_SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          set -euo pipefail
 
-            Source SHA: `${{ steps.upstream.outputs.sha }}`
+          if git diff --quiet --exit-code -- references/; then
+            echo "No changes under references/; nothing to PR."
+            exit 0
+          fi
 
-            See ADR-0003 (`docs/adr/0003-methodology-in-separate-repo.md`) for why this is the sync mechanism.
-          labels: |
-            chore
-            references-sync
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          BRANCH=chore/sync-methodology
+          git checkout -B "$BRANCH"
+          git add references/
+          git commit -m "chore(references): sync methodology @ ${SHORT_SHA}"
+          git push --force origin "$BRANCH"
+
+          # Ensure the auto-PR's labels exist (idempotent — survives missing labels).
+          gh label create chore             --color ededed --description "Maintenance"               --force >/dev/null
+          gh label create references-sync   --color 0e8a16 --description "Automated references/ sync" --force >/dev/null
+
+          # Create the PR if one doesn't already exist for this branch; otherwise
+          # the force-push above already updated it in place.
+          if ! gh pr view "$BRANCH" --json number --jq '.number' >/dev/null 2>&1; then
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(references): sync methodology @ ${SHORT_SHA}" \
+              --body "Automated sync of \`Integral-Productivity/metawork-methodology@main\` into \`references/\`.
+
+          Source SHA: \`${FULL_SHA}\`
+
+          See ADR-0003 (\`docs/adr/0003-methodology-in-separate-repo.md\`) for why this is the sync mechanism." \
+              --label chore \
+              --label references-sync
+          fi
