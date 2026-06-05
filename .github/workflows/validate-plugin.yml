@@ -1,12 +1,12 @@
 name: Validate plugin manifest
 
-# Gate every PR on `claude plugin validate` so a manifest that is valid JSON but
-# invalid against the Claude Code plugin schema cannot reach `main`. This repo's
-# marketplace listing tracks `main` directly, so there is no stable-promotion
-# step to act as a backstop — PR-time validation is the only gate.
+# Gate every PR on `claude plugin validate` so a plugin that is valid JSON but
+# invalid against the Claude Code plugin schema cannot reach `main`. Delegates
+# to the org-wide reusable workflow in devops-excellence (ADR-038) so the gate
+# stays DRY across every *-claude-plugin repo.
 #
 # `claude plugin validate` is a local, auth-free schema check (no API key, no
-# login), so it runs on a clean runner.
+# login), so it needs no secrets.
 
 on:
   pull_request:
@@ -14,18 +14,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      # Latest CLI on purpose: validate against the current plugin schema so new
-      # schema requirements are caught, not pinned away. Pin here if a CLI
-      # release ever destabilises the gate.
-      - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
-      - name: Validate manifest
-        run: claude plugin validate .claude-plugin/plugin.json
+    uses: Integral-Productivity/devops-excellence/.github/workflows/reusable-validate-plugin-manifest.yml@main
