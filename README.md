@@ -34,16 +34,21 @@ wherever you persist text. See [ADR-0002](docs/adr/0002-no-adapter-mcp-in-v1.md)
 
 ## Install
 
-> The plugin isn't yet published to the Claude Code marketplace. To dogfood
-> from source:
->
-> ```bash
-> git clone https://github.com/Integral-Productivity/metawork-claude-plugin \
->   ~/.claude/plugins/metawork
-> ```
->
-> Then restart Claude Code. Detailed install + first-run instructions will land
-> with v0.1.0 (post-bootstrap).
+> **Alpha/preview.** Skill, command, and subagent bodies are still stubs (see
+> the status note above). The plugin installs and its surfaces load, but the
+> methodology behavior is still being filled in.
+
+In Claude Code (CLI) or Claude Desktop (Cowork):
+
+```text
+/plugin marketplace add Integral-Productivity/marketplace
+/plugin install metawork@integral-productivity-tools
+```
+
+Then restart Claude Code so the plugin's skills, commands, and subagents are
+picked up. The marketplace entry tracks this repo's `main` branch while
+metawork is in alpha; it moves to a tag-driven `stable` channel at the first
+real release (see [#6](https://github.com/Integral-Productivity/metawork-claude-plugin/issues/6)).
 
 ## Configure
 
