@@ -111,11 +111,12 @@ for an automated `chore` PR; the dedicated App's name keeps the PR opener
 self-describing.
 
 **Downstream CI:** PRs opened with an App token (unlike the built-in
-`GITHUB_TOKEN`) **can** trigger `pull_request` workflows. Today the only
-check that runs on a PR is CodeQL default setup — there is **no**
-workflow that validates the synced `references/` content. So this enables
-future PR checks rather than guaranteeing snapshot validation now; adding
-a `references/`-validation workflow is tracked separately.
+`GITHUB_TOKEN`) **can** trigger `pull_request` workflows. A sync PR will
+therefore run the repo's PR checks — `validate-plugin` (plugin-manifest
+schema validation) and CodeQL. Note neither validates the synced
+`references/` *content* itself, so a bad methodology snapshot would still
+pass; a `references/`-content validator remains future work, tracked
+separately.
 
 **Smoke-test gate (part of this decision, not advisory):** because the
 originating incident was 16 *silent* scheduled failures, a manual
