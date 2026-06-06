@@ -30,8 +30,31 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      # The default GITHUB_TOKEN is scoped only to THIS repo, so it cannot read
+      # the separate (INTERNAL) metawork-methodology repo — the cross-repo
+      # checkout below fails with "Repository not found" (GitHub returns 404,
+      # not 403, for private repos a token can't see). Mint a GitHub App token
+      # that is installed on BOTH repos to grant cross-repo read. This action
+      # is on the org's Actions allowlist (see PR step note below).
+      #
+      # The App must be installed on metawork-claude-plugin (Contents: write,
+      # Pull requests: write) and metawork-methodology (Contents: read), with
+      # its App ID and private key stored as the two secrets referenced here.
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.METHODOLOGY_SYNC_APP_ID }}
+          private-key: ${{ secrets.METHODOLOGY_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            metawork-claude-plugin
+            metawork-methodology
+
       - name: Checkout plugin repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Checkout methodology repo
         uses: actions/checkout@v4
@@ -39,6 +62,7 @@ jobs:
           repository: Integral-Productivity/metawork-methodology
           path: .methodology-src
           ref: main
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Capture upstream SHA
         id: upstream
@@ -74,13 +98,13 @@ jobs:
       # peter-evans/create-pull-request isn't on that list, so using it triggered
       # `startup_failure` on the receiver before any step ran.
       #
-      # If we later need PRs opened here to fire downstream CI (the built-in
-      # GITHUB_TOKEN doesn't trigger workflows on PRs it creates), mint a token
-      # via actions/create-github-app-token@v1 — that one IS on the allowlist —
-      # and pass it as GH_TOKEN below.
+      # We pass the GitHub App token (minted above) as GH_TOKEN rather than the
+      # built-in GITHUB_TOKEN so that PRs opened here CAN trigger downstream CI
+      # (the built-in token deliberately does not trigger workflows on PRs it
+      # creates).
       - name: Open or update PR if references/ changed
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SHORT_SHA: ${{ steps.upstream.outputs.short_sha }}
           FULL_SHA: ${{ steps.upstream.outputs.sha }}
         run: |
