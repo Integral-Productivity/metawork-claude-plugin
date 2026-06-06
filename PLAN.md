@@ -243,12 +243,12 @@ polluting main context.
 
 Public-ready. Replaces the "v0.1.0 post-bootstrap" promise in README.
 
-- Marketplace listing (Claude Code plugin marketplace once it's
-  available; until then, document the `git clone ~/.claude/plugins/`
-  install path with a real, tested invocation).
+- Marketplace listing — listed in `Integral-Productivity/marketplace`
+  tracking `main` on an interim basis (alpha/preview); migrate to the
+  tag-driven `stable` channel at the first real release (#6).
 - Install + first-run docs at the README level.
 - CHANGELOG seeded with the v0.1 phases.
-- Version bump in `plugin.json` from `0.1.0-alpha` to `0.1.0`;
+- Version bump in `.claude-plugin/plugin.json` from `0.1.0-alpha` to `0.1.0`;
   `status.stability` to `beta` or `stable` per actual confidence.
 - Tag the release; cut release notes.
 
