@@ -56,7 +56,7 @@ Mint a GitHub App token scoped to **both** repos and pass it to the cross-repo c
     token: ${{ steps.app-token.outputs.token }}   # <-- the fix
 ```
 
-The App must be installed on both repos: the repo being written to needs Contents + Pull-requests write; the repo being read needs Contents read. An existing org App with the right permission surface (e.g. `ip-releaser`, installed on all repos) can be reused — only its App ID + private key need to be stored as the two secrets.
+The App must be installed on both repos: the repo being written to needs Contents + Pull-requests write; the repo being read needs Contents read. **Prefer a dedicated App installed on only those two repos** over reusing a broad existing App — see the blast-radius note in Prevention.
 
 ## Why This Works
 
@@ -70,6 +70,7 @@ A GitHub App token, scoped via `owner` + `repositories` to both repos (and insta
 ## Prevention
 
 - **Any time a workflow checks out a repo other than its own, assume the default `GITHUB_TOKEN` cannot read it** and supply a cross-repo credential (App token preferred over PAT — not person-tied, auto-expiring, least-privilege).
+- **The stored App private key's blast radius equals the App's _installation_ scope, not the workflow's `repositories:` list.** `create-github-app-token`'s `repositories:` narrows the *runtime token*, but the stored key can always mint a token for any repo the App is installed on. So reusing a broad all-repos App means its key — sitting in one repo's secrets — is an org-wide write credential if leaked. Mint a **dedicated App installed on only the repos that one job touches**; least-privilege comes from installation scope, not YAML.
 - **Read "Repository not found" on a known-good repo name as an auth signal, not a naming bug.** Verify existence with a human-authed `gh repo view`; if it exists, the workflow token lacks access.
 - **Smoke-test new scheduled workflows once at creation** (`gh workflow run <file>`). A scheduled-only workflow that ships broken fails silently on cron — here, 16 red runs accrued before anyone looked. A manual `workflow_dispatch` run on the first commit would have caught it on day one.
 

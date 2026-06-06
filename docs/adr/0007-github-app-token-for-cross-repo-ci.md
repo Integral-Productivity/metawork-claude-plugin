@@ -1,4 +1,4 @@
-# 7. Authenticate cross-repo CI access with a GitHub App token
+# 7. Authenticate cross-repo CI access with a dedicated GitHub App token
 
 Date: 2026-06-05
 
@@ -54,69 +54,112 @@ Options considered for granting cross-repo read:
 
 Within option (2) there is a sub-choice of App identity:
 
-- **Reuse an existing org App.** `ip-releaser` (App ID `3888182`)
-  already carries exactly the permission surface this needs
-  (`contents: write`, `pull_requests: write`) and is installed on all
-  org repos, so it can read `metawork-methodology` and write to
-  `metawork-claude-plugin` today.
-- **Mint a dedicated App** (e.g. `ip-methodology-sync`) — cleaner
-  identity (commits/PRs authored by a bot whose name says "methodology
-  sync"), at the cost of one more App and private key to manage and
-  rotate.
+- **Reuse an existing org App.** `ip-releaser` (App ID `3888182`) carries
+  the needed permission surface (`contents: write`,
+  `pull_requests: write`) and is installed on **all** org repos, so it
+  could read `metawork-methodology` and write to `metawork-claude-plugin`
+  today with no new App to register.
+- **Mint a dedicated App** (e.g. `ip-methodology-sync`) installed on
+  **only** the two repos this sync touches, with minimal permissions.
+
+The decisive factor is **the blast radius of the stored private key**,
+which is the key fact a first reading of this trade-off misses:
+
+> `actions/create-github-app-token@v1`'s `repositories:` input narrows
+> the *runtime token*, but never the *stored key*. A stored App private
+> key can always mint a token for **any repo the App is installed on**.
+> Least privilege therefore comes from the App's *installation scope*,
+> not the workflow YAML.
+
+Reusing `ip-releaser` would store, in this repo's secrets, a key that can
+mint a `contents: write` + `pull_requests: write` token for **all ~34 org
+repos**. Exfiltration of that one secret — via a malicious workflow
+edit, a compromised runner, or a leaked secret — would be an org-wide
+write credential, even though normal runs scope the token to two repos.
+A dedicated App installed on only the two repos bounds the stored key's
+blast radius to exactly: read `metawork-methodology`, write
+`metawork-claude-plugin`.
+
+This is also the **org's first ADR on cross-repo CI authentication**.
+Whatever identity pattern it normalizes, the other ~33 repos inherit. A
+least-privilege, dedicated-App-per-job pattern is the safer norm to set;
+reusing one broad all-repos App as the convention would compound the
+org-wide blast radius every time a new cross-repo job copies it.
 
 ## Decision
 
 `sync-methodology.yml` authenticates cross-repo access with a **GitHub
 App token** (option 2), minted via
-`actions/create-github-app-token@v1` and scoped to both
-`metawork-claude-plugin` and `metawork-methodology`. The minted token is
-passed to:
+`actions/create-github-app-token@v1` and scoped to both repos.
 
-- the plugin-repo checkout,
-- the methodology-repo checkout, and
-- the PR-creation step (replacing the built-in `GITHUB_TOKEN`).
+We **mint a dedicated App, `ip-methodology-sync`** (not reuse
+`ip-releaser`), installed on **only** `metawork-claude-plugin` (Contents:
+write, Pull requests: write) and `metawork-methodology` (Contents: read).
+This makes the stored key least-privilege: its blast radius is exactly
+those two repos. Its App ID is stored in the `METHODOLOGY_SYNC_APP_ID`
+repo secret and its private key in `METHODOLOGY_SYNC_APP_PRIVATE_KEY`.
 
-We **reuse the existing `ip-releaser` App** (App ID `3888182`) rather
-than minting a dedicated App, because its permissions and installation
-scope already match exactly. Its App ID is stored in the
-`METHODOLOGY_SYNC_APP_ID` repo secret and its private key in
-`METHODOLOGY_SYNC_APP_PRIVATE_KEY`.
+The minted token is passed to the plugin-repo checkout, the
+methodology-repo checkout, and the PR-creation step (replacing the
+built-in `GITHUB_TOKEN`).
 
-A welcome side effect: because PRs opened with an App token (unlike the
-built-in `GITHUB_TOKEN`) **can** trigger downstream workflows, the
-`chore(references): sync` PRs will now fire the plugin's CI — closing
-the gap the workflow comments had flagged as a future need.
+**Authorship:** the workflow sets `git config user.name
+"github-actions[bot]"`, so sync *commits* are attributed to
+`github-actions[bot]`. The *PR* is opened under the App token's identity
+(`ip-methodology-sync[bot]`). This split is intentional and unremarkable
+for an automated `chore` PR; the dedicated App's name keeps the PR opener
+self-describing.
+
+**Downstream CI:** PRs opened with an App token (unlike the built-in
+`GITHUB_TOKEN`) **can** trigger `pull_request` workflows. Today the only
+check that runs on a PR is CodeQL default setup — there is **no**
+workflow that validates the synced `references/` content. So this enables
+future PR checks rather than guaranteeing snapshot validation now; adding
+a `references/`-validation workflow is tracked separately.
+
+**Smoke-test gate (part of this decision, not advisory):** because the
+originating incident was 16 *silent* scheduled failures, a manual
+`gh workflow run sync-methodology.yml` MUST pass green before this
+workflow is trusted, and after any future key rotation.
 
 ## Consequences
 
 **Positive:**
 
-- The methodology sync can actually run — ADR-0003's mechanism works
-  end-to-end for the first time.
+- The methodology sync can run — ADR-0003's mechanism works end-to-end
+  for the first time.
+- **Least-privilege stored key:** the secret's blast radius is exactly
+  the two repos the sync touches, not the whole org. Exfiltration grants
+  only read-methodology / write-plugin, not org-wide write.
 - No personal credential in a shared CI path; the token is auto-expiring
-  and per-run least-privilege (scoped to the two named repos).
-- Sync PRs trigger downstream CI, so a bad snapshot is caught by the
-  plugin's checks rather than merged blind.
-- Reusing `ip-releaser` means zero new Apps or keys to provision and
-  rotate.
+  and per-run scoped to the two named repos.
+- The App's lifecycle is **decoupled** from any release App — narrowing,
+  rotating, or reinstalling `ip-releaser` for its release purpose can
+  never silently break this sync.
+- A clean bot identity (`ip-methodology-sync[bot]`) on the PR opener, and
+  a least-privilege precedent for the org's other cross-repo jobs.
 
 **Negative:**
 
-- Commits and PRs from the sync now appear authored by
-  `ip-releaser[bot]` — an identity that says "releaser," not
-  "methodology sync." Mild semantic bleed; acceptable for an automated
-  `chore` PR, but it is a real readability cost.
-- The sync now depends on the `ip-releaser` App's continued existence,
-  permission surface, and key validity. If that App is repurposed,
-  narrowed, or its key rotated without updating the secret, the sync
-  breaks again — and (as this incident showed) it can break silently.
+- One more App and private key to provision and rotate — the cost
+  rejected for `ip-releaser` reuse. Provisioning needs a one-time browser
+  step (create the App, install it on the two repos, generate a key);
+  there is no REST API to create an App's key.
 - A GitHub App is a heavier mental model than a PAT for a contributor
   reading the workflow for the first time.
+- No rotation cadence or compromise-response runbook is defined yet. A
+  rotation-on-suspicion procedure (revoke the key in App settings →
+  generate a new key → update `METHODOLOGY_SYNC_APP_PRIVATE_KEY` → smoke
+  re-run) should be written; a key that is rotated without updating the
+  secret breaks the sync, and (as this incident showed) it can break
+  silently on cron.
+- The threat model still assumes repo maintainers control who can edit
+  `.github/workflows/` and read repo secrets. If the contributor base
+  broadens, a CODEOWNERS rule on `.github/workflows/` and GHAS secret
+  scanning / push protection are the compensating controls.
 
-**Trigger to revisit:** mint a dedicated `ip-methodology-sync` App and
-repoint the two secrets if EITHER (a) the `ip-releaser[bot]` authorship
-on sync PRs becomes confusing in practice, OR (b) `ip-releaser`'s
-permissions/installation are changed for its primary release purpose in
-a way that no longer covers this sync. Add a `workflow_dispatch` smoke
-run to the workflow's acceptance checks so a future auth regression
-surfaces immediately instead of accruing silent scheduled failures.
+**Trigger to revisit:** if many cross-repo jobs accrue across the org and
+per-job dedicated Apps become burdensome to manage, record an org-wide
+convention in `devops-excellence` (a shared, *narrowly-scoped* CI App, or
+App-lifecycle automation) rather than reverting to a broad all-repos App.
+Revisit the dedicated-vs-shared call there, not per-repo.
