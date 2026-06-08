@@ -57,7 +57,7 @@ properties:
       - 1-2yr
       - 3mo-1yr
       - 1day-3mo
-    description: "Temporal horizon axis (Kraig's custom synthesis)."
+    description: "Temporal horizon axis (a custom synthesis)."
   vertical_development_stage:
     type: string
     enum:
@@ -69,7 +69,7 @@ properties:
       - self-actualizing
       - construct-aware
       - unitive
-    description: "Developmental altitude axis (Kraig's 8-stage synthesis)."
+    description: "Developmental altitude axis (an 8-stage synthesis)."
 
   # ─── optional classifiers ─────────────────────────────────────────────
   cynefin_domain:

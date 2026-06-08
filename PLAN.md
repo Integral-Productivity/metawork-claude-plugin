@@ -153,7 +153,7 @@ the adapter MCP, so this phase matters strategically.
 
 **Dependencies:** Phase 3 (markdown patterns established).
 
-**Exit criterion:** Kraig's reference DB accepts a new area-level and
+**Exit criterion:** the reference DB accepts a new area-level and
 project-level Meta Work Group via the skill without hand-editing in
 OmniFocus.
 
@@ -175,7 +175,7 @@ per the four Living Forward checks.
 
 **Dependencies:** Phase 3 and Phase 5.
 
-**Exit criterion:** one morning's run across Kraig's active groups
+**Exit criterion:** one morning's run across the reference user's active groups
 completes without exhausting the conversation's context window, and
 both backends' records reflect the session correctly.
 
@@ -184,7 +184,7 @@ both backends' records reflect the session correctly.
 A working stretch, not a code change. The point: get real breakdown
 signals before designing the diagnose/retro patterns in Phase 8.
 
-- Use `metawork-set-up` to instantiate Meta Work Groups across Kraig's
+- Use `metawork-set-up` to instantiate Meta Work Groups across the reference user's
   life domains: Vocational, Wellness, Familial, Spiritual, Existential,
   plus ADDRESSING identity domains as appropriate.
 - Run `metawork-morning` daily for at least a week.
@@ -264,11 +264,11 @@ These run alongside every phase. They're not "one phase" — they're
 discipline.
 
 - **BDD acceptance per skill.** Cucumber outer loop, `node:test` +
-  `assert/strict` inner loop, per `~/.claude/CLAUDE.md`. First
+  `assert/strict` inner loop. First
   Cucumber feature lands in Phase 3 — file ADR-0007 for placement
   (per-skill `features/` vs. top-level `features/`) at that moment.
 - **ADR discipline.** File an ADR when an architectural decision is
-  made. Route per `~/GitHub/CLAUDE.md`: org-wide architecture →
+  made. Route per the org's ADR conventions: org-wide architecture →
   `software-architecture-excellence/docs/adr/` (SAE-NNN); DevOps/CI →
   `devops-excellence/docs/adr/` (ADR-NNN); plugin-scoped → this repo's
   `docs/adr/` (NNNN-).
@@ -280,12 +280,12 @@ discipline.
 - **Truthful PLAN.md.** Update this file in the same PR as the work
   that moves a phase forward.
 - **Skill contribution discipline.** At the end of any session that
-  modifies a skill, complete the contribution flow at
-  `~/GitHub/skills/docs/contribution-workflow.md`.
+  modifies a skill, complete the contribution flow for the relevant
+  skills repository.
 
 ## Open questions
 
-Named explicitly so future-Kraig can see what's unresolved.
+Named explicitly so future maintainers can see what's unresolved.
 
 - **`omnifocus-taskpaper-templates` repo** — `lib/backends/omnifocus.md`
   treats this as canonical. Is it assumed already standing, or does

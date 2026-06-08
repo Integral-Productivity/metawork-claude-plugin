@@ -24,7 +24,7 @@ and synced into this plugin's `references/` directory.
   *yak-shaving* and *work-about-work-as-avoidance*. Same words, near-opposite
   meaning. The plugin's `metawork-scholar` skill must teach this distinction
   explicitly because new users (and even seasoned practitioners) conflate them.
-- **Meta-Task** — Kraig's GTD-style task-processing-phase tag in OmniFocus
+- **Meta-Task** — a GTD-style task-processing-phase tag in OmniFocus
   (with four children: Task Preprocessing, Project Preprocessing, Task
   Processing, Task Postprocessing). Unrelated to Meta Work the methodology.
   Conflation risk; recorded here to prevent it.
@@ -85,7 +85,7 @@ Where Meta Work Group state lives for a user. v1 supports two backends:
 - **OmniFocus** (preferred for OF users): state lives as OF projects, action
   groups, and tags. Skills compose on top of the existing `mcp__omnifocus__*`
   tools, with fallback to TaskPaper render-and-paste. URL-scheme delegation
-  to a Kraig-maintained OF plugin was considered as a middle tier and is
+  to a user-maintained OF plugin was considered as a middle tier and is
   deferred to v2; see ADR-0006.
 - **Markdown directory**: state lives as `.md` files on the filesystem, one per
   Meta Work Group, with YAML frontmatter conforming to
@@ -113,7 +113,7 @@ for the directory layout and `lib/config.md` for how it is configured.
 
 - **`metawork-*`** is the artifact-naming convention inside the plugin (no
   internal dash). The methodology in prose is **"Meta Work"** (two words).
-- **`Stations`** is a tag in Kraig's reference OmniFocus database used as a
+- **`Stations`** is a tag in the reference OmniFocus database used as a
   *tool-context* marker (Agile / Airtable / Trello / OmniFocus). It indicates
   *where* a task happens, NOT a panarchy or scope level. The TaskPaper template
   uses `@tags(Stations : OmniFocus)` to mean "this task is done while at the
@@ -131,7 +131,7 @@ The eight v1 pillars of Meta Work. Each has a dedicated reference at
 5. Radical Acceptance / current-reality awareness
 6. Panarchy & adaptive cycles (Resilience Alliance)
 7. ADDRESSING model (Pamela Hays)
-8. Vertical development (Kegan / Cook-Greuter; Kraig's 8-stage synthesis)
+8. Vertical development (Kegan / Cook-Greuter; an 8-stage synthesis)
 
 Deferred to v2+: Holacracy, Integral Theory / AQAL, Positive Disintegration.
 
