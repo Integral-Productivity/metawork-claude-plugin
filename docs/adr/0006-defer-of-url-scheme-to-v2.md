@@ -34,7 +34,7 @@ invalidate.
 ## Decision
 
 **v1 OmniFocus degradation is two-tier:** `mcp__omnifocus__*` →
-TaskPaper render-and-paste. URL-scheme delegation to a Kraig-maintained
+TaskPaper render-and-paste. URL-scheme delegation to a user-maintained
 OmniFocus plugin is deferred to v2.
 
 `lib/backends/omnifocus.md` is updated in the same change to:
@@ -43,7 +43,7 @@ OmniFocus plugin is deferred to v2.
 - drop the *OF plugin via URL* column from the §Write operations table.
 
 The §Template store section is left intact — it mentions the URL-scheme
-path as how Kraig's local OmniFocus plugin *consumes* the local
+path as how the reference user's local OmniFocus plugin *consumes* the local
 template instance, which is unrelated to the degradation fallback and
 sits outside the v1 plugin's responsibilities.
 
@@ -54,7 +54,7 @@ sits outside the v1 plugin's responsibilities.
 - v1 ships without depending on a not-yet-named external repo.
 - Two-tier degradation is easier to reason about and to cover with BDD
   scenarios in Phase 5 (MCP-available / MCP-unavailable, no third case).
-- Kraig's OmniFocus plugin can evolve on its own cadence without
+- The reference user's OmniFocus plugin can evolve on its own cadence without
   shaping this plugin's v1 contract.
 - Aligns with [ADR-0002](0002-no-adapter-mcp-in-v1.md)'s discipline of
   deferring contracts until real usage informs their shape.

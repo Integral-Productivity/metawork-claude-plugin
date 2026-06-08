@@ -10,8 +10,8 @@ Accepted
 
 The plugin must operationalize Meta Work across multiple backends (OmniFocus
 today; Things, Todoist, Obsidian, Notion, markdown as the public adopts it).
-The standard Integral-Productivity pattern (see `~/GitHub/CLAUDE.md` Tech
-Radar, ADRs in `devops-excellence` and our MCP-builder skills) is
+The standard Integral-Productivity pattern (see the org Tech
+Radar and the `devops-excellence` ADRs) is
 **MCP-first**: define a tool-agnostic verb surface as an MCP server, then have
 skills consume it. That gives clean contract boundaries, semver, and
 non-Claude-Code reuse.

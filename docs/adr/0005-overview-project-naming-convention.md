@@ -15,7 +15,7 @@ project in the OmniFocus backend. OmniFocus's data model doesn't have a
 first-class "area" object distinct from "project"; areas are typically
 represented as folders.
 
-Inspection of Kraig's reference database reveals a consistent existing
+Inspection of the reference database reveals a consistent existing
 convention: area-level Meta Work Groups live in projects named
 `Overview (Area Name)`. Examples observed:
 
@@ -64,7 +64,7 @@ For other Horizons of Focus altitudes:
 **Positive:**
 
 - Codifies an existing, working convention rather than inventing a new one.
-- Migration effort for Kraig (the reference user) is zero — the plugin
+- Migration effort for the reference user is zero — the plugin
   matches the database as-is.
 - Cross-backend consistency: a public user reading both the OF and markdown
   backend docs sees the same conceptual structure.

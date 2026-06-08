@@ -12,17 +12,17 @@ A Meta Work Group needs to express **what scope of work it addresses**. The
 original plan assumed a single panarchy-derived enumeration:
 `whole-self | domain | area | project | identity-facet`.
 
-Inspection of Kraig's reference OmniFocus database revealed that the actual
+Inspection of the reference OmniFocus database revealed that the actual
 practice uses **three independent axes** (plus two optional classifiers), each
 backed by its own dedicated tag hierarchy already in active use:
 
 - **Horizons of Focus** (David Allen / GTD) — `50,000 ft Purpose & Principles`
   through `Runway`. The *granularity* axis: how zoomed-in this Meta Work
   Group's altitude of concern is.
-- **System Strata** (Kraig's custom synthesis) — `200–500 yr` through
+- **System Strata** (a custom synthesis) — `200–500 yr` through
   `1 day – 3 mo`. The *temporal horizon* axis: how far out the consequences
   of this work extend.
-- **Vertical Development Stage** (Kraig's 8-stage synthesis after Kegan /
+- **Vertical Development Stage** (an 8-stage synthesis after Kegan /
   Cook-Greuter) — `Self-Centric` through `Unitive`. The *developmental
   altitude* axis: the meaning-making stage from which the practitioner is
   operating on this work.
@@ -62,7 +62,7 @@ parent-references, not enumeration values.
 
 **Positive:**
 
-- The data model reflects how Meta Work is actually practiced in Kraig's
+- The data model reflects how Meta Work is actually practiced in the
   reference database.
 - The three axes give the plugin three rich vocabularies that skill prompts
   can lean on — e.g., `metawork-diagnose` can ask "is this a vertical

@@ -14,14 +14,14 @@ Every write operation should try, in order:
    into OmniFocus (`File > Import` or `⌘V` into a project).
 
 Skills detect availability in that order; degradation is silent unless the
-user asks why a path was chosen. URL-scheme delegation to a Kraig-maintained
+user asks why a path was chosen. URL-scheme delegation to a user-maintained
 OmniFocus plugin was considered as a middle tier and deferred to v2; see
 [ADR-0006](../../docs/adr/0006-defer-of-url-scheme-to-v2.md).
 
 ## Performance caveat
 
-The reference user's OmniFocus database is large (2,264 folders / 2,091
-projects / 1,926 tags at the time of plan writing). The existing
+The reference user's OmniFocus database is large (thousands of folders,
+projects, and tags). The existing
 `mcp__omnifocus__*` MCP times out on aggregate queries against it:
 `list_folders`, `get_project_counts`, `list_perspectives`, and unfiltered
 `list_projects` all exceeded the 30-second JXA timeout during planning.
@@ -77,13 +77,13 @@ The TaskPaper template lives in two places:
 
 - **Canonical:** [`Integral-Productivity/omnifocus-taskpaper-templates/actionGroups/Meta Work.taskpaper`](https://github.com/Integral-Productivity/omnifocus-taskpaper-templates/blob/main/actionGroups/Meta%20Work.taskpaper)
 - **Local instance** (in the reference user's OF DB): a project named
-  `Meta Work TaskPaper Template` in folder `TaskPaper Templates`. Kraig's OF
+  `Meta Work TaskPaper Template` in folder `TaskPaper Templates`. The reference user's OF
   plugin uses this local copy as the instantiation source.
 
 When the plugin writes a new Meta Work Group via MCP, it renders the
 canonical TaskPaper template (fetched at install time and cached) and
 expands the tasks programmatically. The local instance is used only when
-delegating to Kraig's OF plugin via URL scheme.
+delegating to the reference user's OF plugin via URL scheme.
 
 ## Read operations
 

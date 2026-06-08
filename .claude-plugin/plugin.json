@@ -3,8 +3,7 @@
   "version": "0.1.0-alpha",
   "description": "Teach, run, set up, and coach the Meta Work methodology — a structured practice for intentional planning, perspective-maintenance, and monitoring across project, area, domain, and identity scopes.",
   "author": {
-    "name": "Kraig Parkinson",
-    "email": "kraigparkinson@integralproductivity.com",
+    "name": "Integral Productivity",
     "url": "https://github.com/Integral-Productivity"
   },
   "homepage": "https://github.com/Integral-Productivity/metawork-claude-plugin",

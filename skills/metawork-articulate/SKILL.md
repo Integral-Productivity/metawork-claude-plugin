@@ -1,6 +1,6 @@
 ---
 name: metawork-articulate
-description: Use when the user (Kraig or another practitioner) wants to draft or extend the canonical Meta Work methodology document. Interviews the user about a pillar, distinction, breakdown pattern, or integration point, then produces a PR-ready markdown section for the metawork-methodology repo (or, if cloning that repo isn't possible, a markdown file the user can copy in). Closes the loop with metawork-scholar — what articulate writes is what scholar teaches.
+description: Use when the user (a practitioner) wants to draft or extend the canonical Meta Work methodology document. Interviews the user about a pillar, distinction, breakdown pattern, or integration point, then produces a PR-ready markdown section for the metawork-methodology repo (or, if cloning that repo isn't possible, a markdown file the user can copy in). Closes the loop with metawork-scholar — what articulate writes is what scholar teaches.
 status: v0.1-stub
 ---
 
@@ -12,7 +12,7 @@ status: v0.1-stub
 
 ## Purpose
 
-Elicit Meta Work as a methodology from a practitioner (initially Kraig) and
+Elicit Meta Work as a methodology from a practitioner and
 produce PR-ready markdown sections for `metawork-methodology`.
 
 ## Inputs
