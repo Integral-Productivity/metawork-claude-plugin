@@ -42,7 +42,7 @@ jobs:
       # its App ID and private key stored as the two secrets referenced here.
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.METHODOLOGY_SYNC_APP_ID }}
           private-key: ${{ secrets.METHODOLOGY_SYNC_APP_PRIVATE_KEY }}
