@@ -164,3 +164,18 @@ follows real demand, captured in an ADR, schema-bumped in the same PR.
   file is the per-user counterpart.
 - `docs/adr/0005-overview-project-naming-convention.md` — the source of
   the `naming.area_prefix` extension hook.
+
+## Ontology validation
+
+Skills that write or diagnose markdown-backend groups validate them with
+`lib/ontology/validate-group.sh <group file or state dir>`, which runs the
+Meta Work ontology's SHACL shapes from the vendored snapshot in
+`lib/ontology/vendor/`. It reads no config keys. Two environment variables
+adjust it:
+
+| Variable | Effect |
+|---|---|
+| `METAWORK_ONTOLOGY_DIR` | Validate against this metawork-ontology checkout instead of the vendored snapshot. |
+| `METAWORK_PYTHON` | Python interpreter to use (must import `rdflib`, `pyshacl`, `pyyaml`); otherwise `python3`, then `uv`. |
+
+See [ADR-0008](../docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md).

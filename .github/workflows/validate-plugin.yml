@@ -49,3 +49,36 @@ jobs:
       - name: Run CQ-15
         working-directory: metawork-ontology
         run: pytest -q tests/test_competency_questions.py::test_cq15_plugin_schema_in_sync
+
+  # Issue #39 / ADR-0008: the helper metawork-set-up and metawork-diagnose call
+  # (lib/ontology/validate-group.sh) must pass a conforming markdown group and
+  # fail a violating one. Run against the vendored snapshot the plugin ships
+  # AND against metawork-ontology@main, so an upstream shape change that would
+  # break the skills fails here before the next sync PR lands it.
+  ontology-validate:
+    name: Group validation helper (${{ matrix.ontology }} ontology)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ontology: [vendored, upstream-main]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        if: matrix.ontology == 'upstream-main'
+        with:
+          repository: Integral-Productivity/metawork-ontology
+          path: metawork-ontology
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ontology requirements
+        run: pip install -r lib/ontology/vendor/requirements.txt
+
+      - name: Run helper acceptance tests
+        env:
+          METAWORK_ONTOLOGY_DIR: ${{ matrix.ontology == 'upstream-main' && format('{0}/metawork-ontology', github.workspace) || '' }}
+        run: python -m pytest -q tests/ontology

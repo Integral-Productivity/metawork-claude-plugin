@@ -8,6 +8,8 @@ status: v0.1-stub
 
 > **Status:** v0.1 stub. Implement Phase 8 of the build order alongside
 > `metawork-retro`, once breakdown patterns are observable.
+> **Implemented:** the ontology validation step below (issue #39,
+> ADR-0008). The diagnostic patterns are still prose.
 
 ## Purpose
 
@@ -27,6 +29,38 @@ adjacent practice).
 - A diagnosis: which breakdown pattern this matches and why.
 - A recommended next move: a specific Meta Work intervention, an adjacent
   practice hand-off, or a scope/altitude/strata re-calibration.
+- The ontology validation result for the group(s) involved, including any
+  SHACL violations (see below).
+
+## Validate against the ontology (required before any diagnosis)
+
+When the Meta Work Group(s) involved are markdown-backend files, validate
+them before reporting a diagnosis. Pass the group file(s), or the state
+directory to check every group in it:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/lib/ontology/validate-group.sh" "<group file or state dir>" [...]
+```
+
+The script lifts each group's frontmatter (and its `parent:` chain) to RDF
+and runs every SHACL shape in the vendored metawork-ontology snapshot; new
+shapes added upstream apply after the next ontology sync with no change
+here. Use `--format json` if you need the violations as data
+(`status`, `violations[].file|field|value|message`).
+
+- **Exit 0 — conforms.** Say so in one line in the diagnosis output.
+- **Exit 1 — SHACL violations.** Include a **Ontology violations** section in
+  the diagnosis that shows the `FAIL:` block as printed: for each violation
+  the file, field, value, and message. Treat each as evidence: a value
+  outside a scheme or a missing axis often *is* the breakdown (for example a
+  scope-axis mismatch). Do not present the group as healthy.
+- **Exit 2 or 3 — not validated.** Show the output and state plainly that
+  the group could not be validated and why (input error, or ontology tool
+  unavailable with the install fix it names). Do not report the diagnosis
+  as complete or the group as conforming.
+
+OmniFocus-backend groups are not covered by the lift yet; say that rather
+than implying validation ran.
 
 ## Diagnostic patterns (v1 starting set)
 
