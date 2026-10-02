@@ -1,0 +1,26 @@
+skills/metawork-diagnose/SKILL.md
+  s_88d046ec18ec7c::t_a2abb843e3b049 32-33
+  s_88d046ec18ec7c::t_c2e50eb0cfd48e 11-12,34-63
+lib/config.md
+  s_88d046ec18ec7c::t_a2abb843e3b049 167-181
+skills/metawork-set-up/SKILL.md
+  s_88d046ec18ec7c::t_c2e50eb0cfd48e 11-12,62-89
+README.md
+  s_88d046ec18ec7c::t_a2abb843e3b049 59-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "de4b57133e964cecb6f06e9c149f486ba17f34a0",
+  "prompts": {},
+  "sessions": {
+    "s_88d046ec18ec7c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0b657c16-5289-4f8a-b464-2fc289fd1b44",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
