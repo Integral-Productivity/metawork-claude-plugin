@@ -20,3 +20,32 @@ permissions:
 jobs:
   validate:
     uses: Integral-Productivity/reusable-workflows/.github/workflows/validate-plugin-manifest.yml@v1
+
+  # CQ-15 from metawork-ontology: the enums in the plugin's YAML schema must
+  # equal the SKOS notations in the ontology. Run the ontology's own test
+  # against this repo's schema so drift fails here, at the source of change.
+  # metawork-ontology is public, so the checkout needs no token.
+  schema-sync:
+    name: Schema in sync with ontology (CQ-15)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Integral-Productivity/metawork-ontology
+          path: metawork-ontology
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ontology requirements
+        run: pip install -r metawork-ontology/requirements.txt
+
+      - name: Use plugin schema as ontology fixture
+        run: cp lib/schema/metawork-group.schema.yaml metawork-ontology/fixtures/metawork-group.schema.yaml
+
+      - name: Run CQ-15
+        working-directory: metawork-ontology
+        run: pytest -q tests/test_competency_questions.py::test_cq15_plugin_schema_in_sync
