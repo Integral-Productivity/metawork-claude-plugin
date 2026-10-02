@@ -115,6 +115,15 @@ mwv:MarkdownDirectoryBackend a skos:Concept ; skos:inScheme mwv:core ; skos:broa
     skos:prefLabel "Markdown directory backend"@en ;
     skos:definition "State lives as .md files, one per Meta Work Group, with YAML frontmatter."@en .
 
+mwv:Decision a skos:Concept ;
+    skos:inScheme mwv:core ;
+    skos:prefLabel "Decision (in a Meta Work Group)"@en ;
+    skos:altLabel "decision point"@en , "question being worked"@en ;
+    skos:definition "A decision or question the practitioner is actually working on inside a particular Meta Work Group, together with the Horizons of Focus altitude at which that decision is being made. Records how a group is used, as distinct from how it is scoped."@en ;
+    skos:scopeNote "Exists so that metawork-diagnose can detect a scope-axis mismatch: a group scoped at one horizons_of_focus being used to decide questions at another. A Decision is evidence about usage; it does not change the group's scope."@en ;
+    skos:related mwv:MetaWorkGroup , mwv:HorizonsOfFocus ;
+    dcterms:source <https://github.com/Integral-Productivity/metawork-claude-plugin/blob/main/skills/metawork-diagnose/SKILL.md> .
+
 #############################################################################
 # 1a. SKOS — the three first-class scope axes
 #############################################################################
@@ -305,3 +314,21 @@ mw:perspectiveCheck a owl:ObjectProperty ;
 mw:backend a owl:ObjectProperty ;
     rdfs:label "backend"@en ; rdfs:domain mw:MetaWorkGroup ; rdfs:range skos:Concept ;
     rdfs:seeAlso mwv:Backend .
+
+mw:Decision a owl:Class ;
+    rdfs:label "Decision"@en ;
+    rdfs:comment "A decision or question being worked on inside one Meta Work Group, at a stated Horizons of Focus altitude. Usage evidence, not scope."@en ;
+    rdfs:seeAlso mwv:Decision .
+
+mw:inGroup a owl:ObjectProperty ;
+    rdfs:label "in group"@en ; rdfs:domain mw:Decision ; rdfs:range mw:MetaWorkGroup ;
+    rdfs:comment "The Meta Work Group in which the decision is being worked."@en .
+
+mw:decisionAltitude a owl:ObjectProperty ;
+    rdfs:label "decision altitude"@en ; rdfs:domain mw:Decision ; rdfs:range skos:Concept ;
+    rdfs:comment "The Horizons of Focus altitude at which the decision is actually being made. Compared against the group's mw:horizonsOfFocus to detect a scope-axis mismatch."@en ;
+    rdfs:seeAlso mwv:HorizonsOfFocus .
+
+mw:statement a owl:DatatypeProperty ;
+    rdfs:label "statement"@en ; rdfs:domain mw:Decision ; rdfs:range xsd:string ;
+    rdfs:comment "Free-text wording of the decision or question, for humans reading a report."@en .
