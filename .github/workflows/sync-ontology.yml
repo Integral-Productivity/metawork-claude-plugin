@@ -1,0 +1,108 @@
+name: sync-ontology
+
+# Pulls the Meta Work ontology (tool, ontology, every shapes/*.ttl) from
+# Integral-Productivity/metawork-ontology into lib/ontology/vendor/ and opens a
+# PR if anything changed. metawork-set-up and metawork-diagnose validate groups
+# against this snapshot via lib/ontology/validate-group.sh.
+#
+# See docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md for the
+# rationale; it follows the ADR-0003 / ADR-0007 pattern used by sync-methodology.
+
+on:
+  schedule:
+    - cron: '30 12 * * *'          # 12:30 UTC daily, after sync-methodology
+  workflow_dispatch: {}
+  repository_dispatch:
+    types: [metawork-ontology-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-ontology
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # metawork-ontology is public, so reading it needs no token. The App
+      # token (ADR-0007) is only for pushing the branch and opening the PR, so
+      # that the PR triggers CI (the built-in GITHUB_TOKEN deliberately does not).
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.METHODOLOGY_SYNC_APP_ID }}
+          private-key: ${{ secrets.METHODOLOGY_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            metawork-claude-plugin
+
+      - name: Checkout plugin repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Checkout ontology repo
+        uses: actions/checkout@v4
+        with:
+          repository: Integral-Productivity/metawork-ontology
+          path: .ontology-src
+          ref: main
+
+      - name: Capture upstream SHA
+        id: upstream
+        run: |
+          echo "sha=$(git -C .ontology-src rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git -C .ontology-src rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Sync ontology into lib/ontology/vendor/
+        run: scripts/sync-ontology.sh .ontology-src
+
+      - name: Clean up source clone
+        run: rm -rf .ontology-src
+
+      # Shell step instead of peter-evans/create-pull-request: the org Actions
+      # allowlist does not include it (see sync-methodology.yml).
+      - name: Open or update PR if the snapshot changed
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SHORT_SHA: ${{ steps.upstream.outputs.short_sha }}
+          FULL_SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          # SNAPSHOT.md always carries the new SHA; only PR when content moved.
+          if git diff --quiet --exit-code -- lib/ontology/vendor/ ':!lib/ontology/vendor/SNAPSHOT.md' \
+             && [ -z "$(git ls-files --others --exclude-standard -- lib/ontology/vendor/)" ]; then
+            echo "Ontology snapshot unchanged; nothing to PR."
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          BRANCH=chore/sync-ontology
+          git checkout -B "$BRANCH"
+          git add -A lib/ontology/vendor/
+          git commit -m "chore(ontology): sync metawork-ontology @ ${SHORT_SHA}"
+          git push --force origin "$BRANCH"
+
+          gh label create chore         --color ededed --description "Maintenance"                 --force >/dev/null
+          gh label create ontology-sync --color 0e8a16 --description "Automated ontology snapshot sync" --force >/dev/null
+
+          if ! gh pr view "$BRANCH" --json number --jq '.number' >/dev/null 2>&1; then
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(ontology): sync metawork-ontology @ ${SHORT_SHA}" \
+              --body "Automated sync of \`Integral-Productivity/metawork-ontology@main\` into \`lib/ontology/vendor/\`.
+
+          Source SHA: \`${FULL_SHA}\`
+
+          New or changed SHACL shapes take effect in \`metawork-set-up\` and \`metawork-diagnose\` validation once this merges. See ADR-0008 (\`docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md\`)." \
+              --label chore \
+              --label ontology-sync
+          fi
