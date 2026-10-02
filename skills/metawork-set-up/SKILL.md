@@ -8,6 +8,8 @@ status: v0.1-stub
 
 > **Status:** v0.1 stub. Implement against the markdown backend first
 > (Phase 3 in the build order), then the OmniFocus backend (Phase 5).
+> **Implemented:** step 9, ontology validation of the markdown group this
+> skill writes (issue #39, ADR-0008). The rest of the method is still prose.
 
 ## Purpose
 
@@ -57,8 +59,34 @@ health monitoring setup, habits — persisted to the user's backend.
 7. **Performance & health monitoring + habits** — capture the user's
    chosen measures and habit definitions.
 8. **Persist** — write to backend per `lib/backends/<backend>.md`.
-9. **Summarize** — show the user where the Meta Work Group lives and how
-   `metawork-morning` will find it.
+9. **Validate against the ontology** (required for the markdown backend,
+   before any success message). Run:
+
+   ```bash
+   "${CLAUDE_PLUGIN_ROOT}/lib/ontology/validate-group.sh" "<path to the group file just written>"
+   ```
+
+   (`${CLAUDE_PLUGIN_ROOT}` is the plugin root; the script is
+   `lib/ontology/validate-group.sh` relative to it.) It lifts the file's
+   frontmatter and its `parent:` chain to RDF and runs every SHACL shape in
+   the vendored metawork-ontology snapshot. Act on the exit code:
+
+   - **0 — pass.** Continue to step 10.
+   - **1 — SHACL violations.** Do **not** report success. Show the user the
+     `FAIL:` block from the output as printed (file, field, value, message
+     for each violation), say the group was written but does not conform,
+     and offer to fix the named fields, then re-run this step.
+   - **2 — input error** (e.g. no frontmatter written) or **3 — validation
+     unavailable** (ontology snapshot or Python deps missing). Do **not**
+     report success. Show the output, say the group was written but **not
+     validated**, and pass on the fix the output names (usually installing
+     `rdflib`, `pyshacl`, `pyyaml`, or `uv`).
+
+   The OmniFocus backend has no lift yet; for it, say that ontology
+   validation does not cover OmniFocus groups rather than implying it ran.
+10. **Summarize** — show the user where the Meta Work Group lives, how
+    `metawork-morning` will find it, and the validation result from step 9
+    (the `Ontology:` line names the snapshot it was checked against).
 
 ## Hand-offs
 

@@ -56,6 +56,17 @@ Configuration (backend type + location) lives at `~/.metawork/config.json`. Any
 skill that needs state will offer to write the config on first use. You can
 also pass `--state-dir` per invocation to override.
 
+## Ontology validation
+
+`metawork-set-up` and `metawork-diagnose` validate markdown-backend Meta Work
+Groups against the [Meta Work ontology](https://github.com/Integral-Productivity/metawork-ontology)
+before reporting success, via `lib/ontology/validate-group.sh`. The plugin
+ships a snapshot of the ontology in `lib/ontology/vendor/`, refreshed by
+`.github/workflows/sync-ontology.yml`. Validation needs Python with `rdflib`,
+`pyshacl` and `pyyaml`, or [`uv`](https://docs.astral.sh/uv/); without either
+the skills say the group was not validated. See
+[ADR-0008](docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md).
+
 ## How the methodology is articulated
 
 The methodology itself lives in a sibling repo,
