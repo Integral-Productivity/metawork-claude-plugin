@@ -1,0 +1,29 @@
+docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md
+  s_88d046ec18ec7c::t_8c4d06dc57f012 84-85,91-120
+  s_88d046ec18ec7c::t_28986940c057b2 121
+lib/ontology/validate_group.py
+  s_88d046ec18ec7c::t_4fb60a36bffbb3 334-336
+  s_88d046ec18ec7c::t_87fda814c48060 341-342
+  s_88d046ec18ec7c::t_c0cc45274d7167 22-34,37-41,222-224,228-248,251-256,269-270,281,288-293,304-305,310-311,323-324,326-329,332-333,340,343-346,382-385,388-389,391-401
+lib/ontology/validate-group.sh
+  s_88d046ec18ec7c::t_8c4d06dc57f012 5,11-12
+tests/ontology/test_validate_group.py
+  s_88d046ec18ec7c::t_4fb60a36bffbb3 113-196,199-204
+  s_88d046ec18ec7c::t_264ca9de9f34fb 197-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1b877dc506ba5674857508c3b2eaf03d57a41c48",
+  "prompts": {},
+  "sessions": {
+    "s_88d046ec18ec7c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0b657c16-5289-4f8a-b464-2fc289fd1b44",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
