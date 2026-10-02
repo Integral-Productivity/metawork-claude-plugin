@@ -110,3 +110,95 @@ def test_every_shapes_file_is_loaded(tmp_path):
     assert code == 1, out
     assert "zz-extra.shacl.ttl" in out["shape_files"]
     assert {v["message"] for v in out["violations"]} == {"test: cynefin_domain required"}
+
+
+# ── decisions and the scope-axis-mismatch shape (issue #40) ────────────────
+
+AREA_GROUP = FIX / "conforming" / "Wellness" / "Sleep" / "Overview.md"  # 20000ft-areas-focus-responsibility
+
+
+def test_decision_at_the_groups_altitude_has_no_mismatch():
+    code, out = run_json("--at", "20000ft-areas-focus-responsibility", AREA_GROUP)
+    assert code == 0, out
+    assert out["status"] == "pass"
+    assert out["violations"] == [] and out["warnings"] == []
+    assert out["decision"]["altitude"] == out["decision"]["group_altitude"]
+    proc = run("--at", "20000ft-areas-focus-responsibility", AREA_GROUP)
+    assert "No scope-axis mismatch" in proc.stdout
+
+
+def test_decision_at_another_altitude_is_a_warning_not_a_failure():
+    code, out = run_json("--at", "10000ft-projects", "--statement", "Which project next?", AREA_GROUP)
+    assert code == 0, out
+    assert out["status"] == "warnings"
+    assert out["violations"] == []
+    [w] = out["warnings"]
+    assert w["severity"] == "Warning"
+    assert w["field"] == "decision_altitude" and w["value"] == "10000ft-projects"
+    assert w["file"] == str(AREA_GROUP)
+    assert w["message"].startswith("Scope-axis mismatch")
+    assert "10000ft-projects" in w["message"] and "20000ft-areas-focus-responsibility" in w["message"]
+    assert out["decision"] == {"group_file": str(AREA_GROUP), "altitude": "10000ft-projects",
+                               "statement": "Which project next?",
+                               "group_altitude": "20000ft-areas-focus-responsibility"}
+
+
+def test_mismatch_text_output_is_a_warning_block_not_fail_or_pass():
+    proc = run("--at", "50000ft-purpose-principles", AREA_GROUP)
+    assert proc.returncode == 0
+    assert "WARN: 1 SHACL warning(s)" in proc.stdout
+    assert "Scope-axis mismatch" in proc.stdout
+    assert "FAIL" not in proc.stdout and "PASS" not in proc.stdout
+
+
+def test_violations_still_fail_when_a_decision_is_given():
+    group = FIX / "violating" / "unknown-enum" / "Sleep.md"  # 20000ft, bad system_strata
+    code, out = run_json("--at", "10000ft-projects", group)
+    assert code == 1, out
+    assert out["status"] == "fail"
+    assert [v["field"] for v in out["violations"]] == ["system_strata"]
+    assert [w["field"] for w in out["warnings"]] == ["decision_altitude"]
+
+
+@pytest.mark.parametrize("args", [
+    ("--at", "15000ft", AREA_GROUP),                                # unknown notation
+    ("--at", "10000ft-projects", FIX / "conforming"),               # directory, not one group file
+    ("--at", "10000ft-projects", AREA_GROUP, FIX / "conforming" / "Overview.md"),  # two groups
+    ("--statement", "no altitude given", AREA_GROUP),               # --statement without --at
+])
+def test_bad_decision_input_is_an_input_error(args):
+    code, out = run_json(*args)
+    assert code == 2, out
+    assert out["status"] == "error"
+
+
+def test_unknown_notation_error_lists_the_valid_ones():
+    proc = run("--at", "15000ft", AREA_GROUP)
+    assert proc.returncode == 2
+    assert "NOT validated" in proc.stdout and "10000ft-projects" in proc.stdout
+
+
+def test_runs_without_at_are_unchanged_by_warning_shapes():
+    # metawork-set-up never passes --at: no Decision exists, so the
+    # scope-axis-mismatch shape has no focus nodes and cannot warn or fail.
+    code, out = run_json(FIX / "conforming")
+    assert code == 0 and out["status"] == "pass"
+    assert out["warnings"] == [] and out["decision"] is None
+    assert "scope-axis-mismatch.shacl.ttl" in out["shape_files"]
+
+
+def test_warnings_from_any_shape_do_not_fail_a_run_without_at(tmp_path):
+    # A future upstream sh:Warning shape on groups must not start failing set-up.
+    onto = tmp_path / "onto"
+    shutil.copytree(VENDOR, onto)
+    (onto / "shapes" / "zz-warn.shacl.ttl").write_text(
+        "@prefix mw: <https://ontology.integralproductivity.com/metawork#> .\n"
+        "@prefix sh: <http://www.w3.org/ns/shacl#> .\n"
+        "[] a sh:NodeShape ; sh:targetClass mw:MetaWorkGroup ;\n"
+        "   sh:property [ sh:path mw:cynefinDomain ; sh:minCount 1 ; sh:severity sh:Warning ;\n"
+        "                 sh:message \"test: cynefin_domain advised\" ] .\n"
+    )
+    code, out = run_json("--ontology-dir", onto, FIX / "conforming")
+    assert code == 0, out
+    assert out["status"] == "warnings" and out["violations"] == []
+    assert {w["message"] for w in out["warnings"]} == {"test: cynefin_domain advised"}

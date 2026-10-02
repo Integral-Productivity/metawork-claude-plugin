@@ -81,11 +81,43 @@ not decide between them.
     exit 3.
   - **Exit codes:** 0 pass, 1 SHACL violations, 2 input error, 3 tool
     unavailable. Exit 3 is never a pass; the skills report it as "not
-    validated" and do not report success.
+    validated" and do not report success. Exit 0 also covers a run with
+    warnings only (see "Decisions and warnings" below).
 - CI (`validate-plugin.yml`, job `ontology-validate`) runs
   `tests/ontology/` against the vendored snapshot and against
   `metawork-ontology@main`, proving the helper passes a conforming group tree
   and fails each violating fixture.
+
+### Decisions and warnings (added 2026-10-02, issue #40)
+
+The scope-axis-mismatch shape (ontology ADR-0003 item 3,
+`shapes/scope-axis-mismatch.shacl.ttl`, `mws:ScopeAxisMismatchShape`) needs
+more than a group file: it compares the group's `horizons_of_focus` with the
+altitude at which a decision is actually being made, recorded as an
+`mw:Decision`. The helper takes that altitude on the command line:
+
+- `--at <horizons_of_focus notation>` (and optional `--statement TEXT`) adds
+  one `mw:Decision` whose `mw:inGroup` is the node the helper itself built for
+  the target file, so the shape's join matches. It uses the upstream
+  `decision_to_rdf` but not the upstream `group_iri` (same collision as
+  above). `--at` needs exactly one group file. An unknown notation is an
+  input error (exit 2) listing the valid ones; it is not passed through as a
+  dangling IRI, because a typo should be fixed, not reported as a malformed
+  Decision.
+- Results are split by `sh:resultSeverity`: `sh:Violation` (and any severity
+  the helper does not recognise) goes to `violations`; `sh:Warning` and
+  `sh:Info` go to `warnings`. The mismatch is a Warning by design upstream.
+- A run with warnings and no violations exits **0** with `status:
+  "warnings"`, and the text output prints a `WARN:` block. It does not get a
+  new exit code. Reasons: a warning is, by the shape's own definition, not a
+  failed validation; every existing caller already treats 0 as "conforms" and
+  1 as "does not", so a new code would make each caller handle an unknown
+  value (and `metawork-set-up`, which never passes `--at`, would start
+  failing if an upstream group shape ever adds a warning). A caller that
+  needs the warning reads `status`/`warnings` from `--format json` or the
+  `WARN:` block, which is what `metawork-diagnose` does.
+- Without `--at` no Decision exists, so the mismatch shape has no focus
+  nodes and the existing runs are unchanged.
 
 ## Consequences
 

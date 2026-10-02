@@ -19,11 +19,26 @@ Options:
                          METAWORK_ONTOLOGY_DIR environment variable.
     --format text|json   Output format (default: text).
     --raw                Also print pyshacl's full report text.
+    --at NOTATION        Record a decision being made in the group at this
+                         horizons_of_focus notation (e.g.
+                         20000ft-areas-focus-responsibility), so the
+                         scope-axis-mismatch shape can run. Needs exactly one
+                         group file as PATH. An unknown notation is an input
+                         error (exit 2). See docs/adr/0008, "Decisions and
+                         warnings".
+    --statement TEXT     Optional wording of that decision (needs --at).
+
+Results are split by SHACL severity. sh:Violation results are
+`violations`; sh:Warning and sh:Info results are `warnings`. A scope-axis
+mismatch is a warning: the group and the decision are each well-formed, and
+zooming out on purpose for one question is legitimate.
 
 Exit codes:
-    0  every group conforms
-    1  one or more SHACL violations (printed)
-    2  usage or input error (missing file, no frontmatter, bad YAML)
+    0  no violations. status is "pass", or "warnings" when only warnings
+       were found (printed under WARN:). Warnings never fail a run.
+    1  one or more SHACL violations (printed); warnings are printed too
+    2  usage or input error (missing file, no frontmatter, bad YAML,
+       unknown --at notation, --at without exactly one group file)
     3  ontology tool unavailable (snapshot missing, or rdflib / pyshacl /
        pyyaml not installed). This is never a pass.
 """
@@ -204,12 +219,41 @@ def lift_all(mo, ont, parents: dict[Path, Path | None]):
 def field_names(mo) -> dict:
     names = {prop: key for key, (prop, _) in mo.FIELDS.items()}
     names[mo.MW.parent] = "parent"
+    names[mo.MW.decisionAltitude] = "decision_altitude"
+    names[mo.MW.inGroup] = "decision_group"
+    names[mo.MW.statement] = "decision_statement"
     return names
 
 
-def describe_value(value) -> str | None:
+def add_decision(mo, ont, data, file_of, target: Path, notation: str, statement: str | None):
+    """Add an mw:Decision in the target group's own node (as lifted by lift_all).
+
+    The scope-axis-mismatch shape joins mw:inGroup to the group's
+    mw:horizonsOfFocus, so the decision must name the node this helper built
+    for the file, not the upstream tool's stem-only group IRI.
+    """
+    from rdflib import URIRef
+
+    known = mo.notations_in_scheme(ont, mo.MWV.HorizonsOfFocus)
+    if notation not in known:
+        raise InputError(f"--at {notation!r} is not a horizons_of_focus notation. "
+                         f"Use one of: {', '.join(sorted(known))}")
+    group = next(node for node, f in file_of.items() if f == target)
+    decision = URIRef(f"{group}#decision-{notation}")
+    data += mo.decision_to_rdf(group, notation, ont, statement, decision=decision)
+    file_of[decision] = target
+    return decision
+
+
+def describe_value(value, ont=None) -> str | None:
     if value is None:
         return None
+    if ont is not None:
+        from rdflib.namespace import SKOS
+
+        notation = ont.value(value, SKOS.notation)
+        if notation is not None:
+            return str(notation)
     s = str(value)
     if ":unknown:" in s or "/unknown:" in s:
         return s.rsplit("unknown:", 1)[1] + " (not a notation in the scheme)"
@@ -222,7 +266,8 @@ def describe_value(value) -> str | None:
     return s
 
 
-def violations(mo, report, file_of) -> list[dict]:
+def results(mo, report, file_of, ont) -> tuple[list[dict], list[dict]]:
+    """Top-level SHACL results, split into (violations, warnings) by severity."""
     from rdflib.namespace import SH
 
     names = field_names(mo)
@@ -233,14 +278,19 @@ def violations(mo, report, file_of) -> list[dict]:
         out.append({
             "file": str(file_of.get(focus, focus)),
             "field": names.get(path, describe_value(path)) if path is not None else None,
-            "value": describe_value(report.value(r, SH.value)),
+            "value": describe_value(report.value(r, SH.value), ont),
             "severity": describe_value(report.value(r, SH.resultSeverity)),
             "message": str(report.value(r, SH.resultMessage) or ""),
         })
     # One bad value can trip several constraints that share a message (e.g.
     # sh:class and sh:node on the same property); show it once.
     unique = {(v["file"], v["field"], v["value"], v["message"]): v for v in out}
-    return sorted(unique.values(), key=lambda v: (v["file"], v["field"] or "", v["message"]))
+    ordered = sorted(unique.values(), key=lambda v: (v["file"], v["field"] or "", v["message"]))
+    # Anything not explicitly a Warning or Info counts as a violation, so an
+    # unexpected severity can never turn a failure into a pass.
+    soft = {"Warning", "Info"}
+    return ([v for v in ordered if v["severity"] not in soft],
+            [v for v in ordered if v["severity"] in soft])
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -251,11 +301,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ontology-dir")
     ap.add_argument("--format", choices=("text", "json"), default="text")
     ap.add_argument("--raw", action="store_true")
+    ap.add_argument("--at", metavar="NOTATION")
+    ap.add_argument("--statement")
     args = ap.parse_args(argv)
 
     root, source = resolve_ontology_dir(args.ontology_dir)
     result = {"status": None, "ontology": None, "ontology_source": source,
-              "shape_files": [], "files": [], "violations": [], "notes": []}
+              "shape_files": [], "files": [], "decision": None,
+              "violations": [], "warnings": [], "notes": []}
     try:
         mo, ontology, shape_files = load_tool(root)
         from rdflib import Graph
@@ -267,15 +320,30 @@ def main(argv: list[str] | None = None) -> int:
         result["ontology"] = snapshot_label(root)
         result["shape_files"] = [s.name for s in shape_files]
 
+        if args.statement is not None and args.at is None:
+            raise InputError("--statement needs --at NOTATION")
         files, notes = collect(args.paths)
+        if args.at is not None and (len(args.paths) != 1 or len(files) != 1
+                                    or not Path(args.paths[0]).expanduser().is_file()):
+            raise InputError("--at needs exactly one group file as PATH "
+                             "(the group the decision is being made in)")
         parents = with_parents(files, notes)
         data, file_of = lift_all(mo, ont, parents)
+        if args.at is not None:
+            add_decision(mo, ont, data, file_of, files[0], args.at, args.statement)
+            result["decision"] = {
+                "group_file": str(files[0]), "altitude": args.at, "statement": args.statement,
+                "group_altitude": (read_frontmatter(files[0]) or {}).get("horizons_of_focus")}
         conforms, report, text = mo.validate(data, ont, shapes)
         result["files"] = [str(f) for f in parents]
         result["notes"] = notes
-        result["violations"] = violations(mo, report, file_of)
-        result["status"] = "pass" if conforms else "fail"
-        code = EXIT_OK if conforms else EXIT_VIOLATIONS
+        result["violations"], result["warnings"] = results(mo, report, file_of, ont)
+        # A non-conforming report with no parsed results must not read as a pass.
+        if result["violations"] or (not conforms and not result["warnings"]):
+            result["status"], code = "fail", EXIT_VIOLATIONS
+        else:
+            result["status"] = "warnings" if result["warnings"] else "pass"
+            code = EXIT_OK
     except Unavailable as exc:
         result["status"], result["error"], code = "unavailable", str(exc), EXIT_UNAVAILABLE
         text = None
@@ -311,11 +379,26 @@ def print_text(r: dict, root: Path) -> None:
         print(f"  {f}")
     for n in r["notes"]:
         print(f"  note: {n}")
+    d = r["decision"]
+    if d:
+        print(f"Decision: at {d['altitude']} in {d['group_file']}"
+              + (f" — {d['statement']!r}" if d["statement"] else ""))
     if status == "pass":
         print("PASS: every group conforms to the Meta Work ontology.")
+        if d:
+            print(f"No scope-axis mismatch: the group is scoped at {d['altitude']}.")
         return
-    print(f"FAIL: {len(r['violations'])} SHACL violation(s)")
-    for v in r["violations"]:
+    if r["violations"]:
+        print(f"FAIL: {len(r['violations'])} SHACL violation(s)")
+        print_results(r["violations"])
+    if r["warnings"]:
+        print(f"WARN: {len(r['warnings'])} SHACL warning(s)"
+              + ("" if r["violations"] else " (no violations; warnings do not fail validation)"))
+        print_results(r["warnings"])
+
+
+def print_results(items: list[dict]) -> None:
+    for v in items:
         print(f"  - {v['file']}")
         if v["field"]:
             print(f"      field:   {v['field']}")

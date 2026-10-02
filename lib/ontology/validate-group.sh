@@ -2,12 +2,14 @@
 # Entry point skills call to validate Meta Work Groups against the ontology.
 #
 #   lib/ontology/validate-group.sh [--ontology-dir DIR] [--format text|json] PATH [PATH ...]
+#   lib/ontology/validate-group.sh [--format text|json] --at NOTATION [--statement TEXT] GROUP.md
 #
 # Picks a Python that has rdflib + pyshacl + pyyaml:
 #   1. $METAWORK_PYTHON, or python3, if it can already import them;
 #   2. otherwise `uv run --with ...` (ephemeral env, cached after first use);
 #   3. otherwise exit 3 (tool unavailable) — never a silent pass.
-# Exit codes: 0 pass, 1 SHACL violations, 2 input error, 3 tool unavailable.
+# Exit codes: 0 pass (status "warnings" if only sh:Warning results), 1 SHACL
+# violations, 2 input error, 3 tool unavailable.
 # See docs/adr/0008-vendor-ontology-snapshot-for-skill-validation.md.
 set -uo pipefail
 
