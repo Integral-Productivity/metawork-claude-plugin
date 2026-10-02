@@ -71,7 +71,11 @@ health monitoring setup, habits — persisted to the user's backend.
    frontmatter and its `parent:` chain to RDF and runs every SHACL shape in
    the vendored metawork-ontology snapshot. Act on the exit code:
 
-   - **0 — pass.** Continue to step 10.
+   - **0 — pass.** Continue to step 10. Set-up never passes `--at` (there
+     is no decision to check yet), so the scope-axis-mismatch shape does not
+     run. If the output still shows a `WARN:` block (`status: "warnings"`),
+     a warning is not a failure: continue, and mention the warning in the
+     step 10 summary.
    - **1 — SHACL violations.** Do **not** report success. Show the user the
      `FAIL:` block from the output as printed (file, field, value, message
      for each violation), say the group was written but does not conform,
