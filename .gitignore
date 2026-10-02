@@ -9,3 +9,7 @@ node_modules/
 
 # Compound Engineering machine-local config
 .compound-engineering/*.local.yaml
+
+# Python (ontology validation helper, tests)
+__pycache__/
+.pytest_cache/
