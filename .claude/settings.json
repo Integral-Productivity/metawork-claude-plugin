@@ -27,5 +27,17 @@
     "lean-management@integral-productivity-internal": true,
     "software-architecture@integral-productivity-labs": true,
     "lean-management@integral-productivity-labs": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/install-git-ai.sh"
+          }
+        ]
+      }
+    ]
   }
 }
