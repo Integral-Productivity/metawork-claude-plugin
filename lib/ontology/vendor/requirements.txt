@@ -1,3 +1,4 @@
+ontology-tooling @ git+https://github.com/Integral-Productivity/ontology-tooling@v0.1.1
 rdflib>=7.0
 pyshacl>=0.26
 pytest>=8

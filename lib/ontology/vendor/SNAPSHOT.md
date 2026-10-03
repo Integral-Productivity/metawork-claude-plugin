@@ -6,8 +6,8 @@ are overwritten on the next sync. Change them in
 [`Integral-Productivity/metawork-ontology`](https://github.com/Integral-Productivity/metawork-ontology)
 instead.
 
-Source: `Integral-Productivity/metawork-ontology@fc604a6`
-(full SHA: `fc604a6edb3aee268a481b2dc2ae8e88be5e4382`)
+Source: `Integral-Productivity/metawork-ontology@d73367c`
+(full SHA: `d73367cdd49ee57769a3c7845bf2d6dddc418980`)
 
 Licensing follows the source repo's `LICENSE.md` (copied alongside):
 `ontology/` and `shapes/` are CC-BY-SA-4.0; `tools/` is MIT.
