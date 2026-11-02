@@ -32,7 +32,7 @@ jobs:
       # that the PR triggers CI (the built-in GITHUB_TOKEN deliberately does not).
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.METHODOLOGY_SYNC_APP_ID }}
           private-key: ${{ secrets.METHODOLOGY_SYNC_APP_PRIVATE_KEY }}
