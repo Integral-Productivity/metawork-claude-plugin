@@ -2,6 +2,7 @@
 
 Jobs:
   1. load()             — read the ontology and every shapes/*.ttl into rdflib graphs
+                          (ontology_tooling.load, with this repository's paths)
   2. frontmatter_to_rdf — lift a markdown-backend Meta Work Group file
                           (YAML frontmatter, per metawork-claude-plugin
                           lib/backends/markdown-dir.md) into RDF, resolving
@@ -10,6 +11,7 @@ Jobs:
                           at a given horizons_of_focus altitude (mw:Decision),
                           the input the scope-axis-mismatch shape needs
   4. validate()         — run SHACL and return (conforms, report_graph, report_text)
+                          (ontology_tooling.validate: ontology merged in, no inference)
   5. findings()         — the top-level results of a report, with severity
 
 Usage:
@@ -32,8 +34,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import ontology_tooling
 import yaml
-from pyshacl import validate as shacl_validate
 from rdflib import RDF, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import SH, SKOS, XSD
 
@@ -59,11 +61,7 @@ FIELDS = {
 
 
 def load() -> tuple[Graph, Graph]:
-    ont = Graph().parse(ONTOLOGY, format="turtle")
-    shapes = Graph()
-    for f in sorted(SHAPES_DIR.glob("*.ttl")):
-        shapes.parse(f, format="turtle")
-    return ont, shapes
+    return ontology_tooling.load(ONTOLOGY, SHAPES_DIR)
 
 
 def concept_for_notation(ont: Graph, scheme: URIRef, notation: str) -> URIRef | None:
@@ -136,10 +134,7 @@ def decision_to_rdf(
 def validate(data: Graph, ont: Graph, shapes: Graph) -> tuple[bool, Graph, str]:
     # Data is validated *with the ontology loaded* so sh:class / inScheme
     # checks can see the concept declarations.
-    conforms, report_graph, report_text = shacl_validate(
-        data + ont, shacl_graph=shapes, inference="none", advanced=True, abort_on_first=False
-    )
-    return conforms, report_graph, report_text
+    return ontology_tooling.validate(data, ont, shapes)
 
 
 def findings(report: Graph) -> list[tuple[URIRef, URIRef, URIRef | None, str]]:
